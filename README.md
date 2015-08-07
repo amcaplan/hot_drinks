@@ -29,7 +29,7 @@ Since I'm a fan of RSpec, we'll skip the built-in tests and add in RSpec
 ourselves.
 
 ```
-rails plugin new hot_drinks --mountable --skip-test-unit --dummy-path=spec/test_app
+$ rails plugin new hot_drinks --mountable --skip-test-unit --dummy-path=spec/test_app
 ```
 
 What's that last bit?  The generator wants to encourage good testing practices,
@@ -41,9 +41,32 @@ testing, rather than the `spec/` directory.  So we're just moving that over.
 Before we continue, let's turn this into a git repository.
 
 ```
-git init
-git add .
-git commit -m "Initial commit"
+$ git init
+$ git add .
+$ git commit -m "Initial commit"
 ```
+
+Great!  Now let's look at our folder structure.
+
+## The Structure of a Rails Engine
+
+At the top level, we have some familiar filenames and directories:
+```
+$ ls
+Gemfile
+Gemfile.lock
+MIT-LICENSE
+README.md
+Rakefile
+app
+bin
+config
+hot_drinks.gemspec
+lib
+spec
+```
+
+This looks like a regular Rails app, except that it has a `gemspec` file,
+meaning it's all ready to be gemified and bundled in with your applications.
 
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
