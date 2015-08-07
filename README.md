@@ -69,4 +69,35 @@ spec
 This looks like a regular Rails app, except that it has a `gemspec` file,
 meaning it's all ready to be gemified and bundled in with your applications.
 
+## Getting Ready for Testing
+
+To make sure we're ready to test with RSpec, we'll add our dependencies to the
+gemspec.  (Generally, when you're developing gems, it's best to avoid using the
+Gemfile directly; see [Yehuda Katz's blog post about it][YK on gem gemfiles] for
+the full explanation.)  We'll also add FactoryGirl for model generation.
+
+``` ruby
+s.add_development_dependency "rspec-rails", "~> 3.0"
+s.add_development_dependency "factory_girl_rails", "~> 4.5"
+```
+
+While we're there, may as well add a homepage, summary, and description.
+
+Once that's done, we need to
+
+```
+$ bundle install
+```
+
+to get our gems ready to go, and
+
+```
+$ rails generate rspec:install
+```
+
+to get our `spec_helper.rb` file ready.
+
+## 
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
+[YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
