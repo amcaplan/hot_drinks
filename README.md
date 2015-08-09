@@ -197,5 +197,48 @@ Even the migration and table name are namespaced.  This way, they're less likely
 to conflict with your application, and you could theoretically have a separate
 `DrinkType` on the global level.
 
+### Generating a Scaffold
+
+The next step is going to be a little crazy.  We're going to generate a scaffold
+for `Machine`s.  You shouldn't do this in your actual code, but we're trying to
+work through this tutorial quickly, to show how this works.
+
+Since we want to keep our Rails engine as slim as possible, we're going to trim
+much of the fat off of the scaffold generation, just taking the bits we need.
+
+```
+$ rails generate scaffold machine name:string drink_type:references --no-assets --no-helper --no-view-specs --no-helper-specs --integration-tool=rspec
+      invoke  active_record
+      create    db/migrate/20150809112400_create_hot_drinks_machines.rb
+      create    app/models/hot_drinks/machine.rb
+      invoke    rspec
+      create      spec/models/hot_drinks/machine_spec.rb
+      invoke      factory_girl
+      create        spec/factories/hot_drinks_machines.rb
+      invoke  resource_route
+       route    resources :machines
+      invoke  scaffold_controller
+      create    app/controllers/hot_drinks/machines_controller.rb
+      invoke    erb
+      create      app/views/hot_drinks/machines
+      create      app/views/hot_drinks/machines/index.html.erb
+      create      app/views/hot_drinks/machines/edit.html.erb
+      create      app/views/hot_drinks/machines/show.html.erb
+      create      app/views/hot_drinks/machines/new.html.erb
+      create      app/views/hot_drinks/machines/_form.html.erb
+      invoke    rspec
+      create      spec/controllers/hot_drinks/machines_controller_spec.rb
+      create      spec/routing/hot_drinks/machines_routing_spec.rb
+      invoke      rspec
+      create        spec/requests/hot_drinks/hot_drinks_machines_spec.rb
+```
+
+See how the controller and views are namespaced?  Cool.  You'll also note that
+there was a route added to our `config/routes.rb`.  More on that later.
+
+You'll note that I'm not really doing much with the tests.  We'll get there
+soon.
+
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
