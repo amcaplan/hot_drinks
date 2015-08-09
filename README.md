@@ -562,5 +562,48 @@ OK, so we have a lot of failing specs.  I'm happy to live with that for now,
 since those are all auto-generated specs.  We'll overwrite them (or delete as
 necessary) as we go.
 
+### Seeding the database
+
+Before we start writing tests, let's make our lives a bit easier.  We only know
+about 2 drink types: coffee and tea.  And we want them to be always there.  So
+let's seed our database.
+
+We want to set up a Rake task to do this for us.  So open up
+`lib/tasks/hot_drinks_tasks.rake` and clear out the file.  Then put this in:
+
+``` ruby
+desc "seed the database with tea and coffee DrinkTypes"
+namespace :hot_drinks do
+  namespace :db do
+    task :seed do
+      HotDrinks::DrinkType.create!(name: "tea")
+      HotDrinks::DrinkType.create!(name: "coffee")
+    end
+  end
+end
+
+```
+
+We're making sure to namespace our tasks so they don't conflict with whatever is
+in the app this ultimately gets integrated into.
+
+Now we need to drop into our test app directory and run:
+
+```
+$ rake hot_drinks:db:seed RAILS_ENV=test
+```
+
+To confirm, let's open up the Rails console in test mode:
+
+``` ruby
+$ rails console -e test
+Loading test environment (Rails 4.2.3)
+2.2.1 :001 > HotDrinks::DrinkType.all
+  HotDrinks::DrinkType Load (0.8ms)  SELECT "hot_drinks_drink_types".* FROM "hot_drinks_drink_types"
+ => #<ActiveRecord::Relation [#<HotDrinks::DrinkType id: 1, name: "tea", created_at: "2015-08-09 18:44:18", updated_at: "2015-08-09 18:44:18">, #<HotDrinks::DrinkType id: 2, name: "coffee", created_at: "2015-08-09 18:44:18", updated_at: "2015-08-09 18:44:18">]>
+```
+
+Now we can get started on some test-driven development.  Let's do it!
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
