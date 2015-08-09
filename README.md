@@ -413,5 +413,154 @@ mount HotDrinks::Engine => "/hot_drinks"
 
 before we continue.
 
+### Setting up our database
+
+Running `rspec` again, we see a new error.
+
+```
+$ rspec
+/Users/acaplan/Development/code/hot_drinks/spec/test_app/db/schema.rb doesn't exist yet. Run `rake db:migrate` to create it, then try again. If you do not intend to use a database, you should instead alter /Users/acaplan/Development/code/hot_drinks/spec/test_app/config/application.rb to limit the frameworks that will be loaded.
+/Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activerecord-4.2.3/lib/active_record/migration.rb:392:in `check_pending!':  (ActiveRecord::PendingMigrationError)
+
+Migrations are pending. To resolve this issue, run:
+
+  bin/rake db:migrate RAILS_ENV=test
+
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activerecord-4.2.3/lib/active_record/migration.rb:405:in `load_schema_if_pending!'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activerecord-4.2.3/lib/active_record/migration.rb:411:in `block in maintain_test_schema!'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activerecord-4.2.3/lib/active_record/migration.rb:639:in `suppress_messages'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activerecord-4.2.3/lib/active_record/migration.rb:416:in `method_missing'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activerecord-4.2.3/lib/active_record/migration.rb:411:in `maintain_test_schema!'
+  from /Users/acaplan/Development/code/hot_drinks/spec/rails_helper.rb:27:in `<top (required)>'
+  from /Users/acaplan/Development/code/hot_drinks/spec/controllers/hot_drinks/machines_controller_spec.rb:1:in `require'
+  from /Users/acaplan/Development/code/hot_drinks/spec/controllers/hot_drinks/machines_controller_spec.rb:1:in `<top (required)>'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1327:in `load'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1327:in `block in load_spec_files'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1325:in `each'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1325:in `load_spec_files'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:102:in `setup'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:88:in `run'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:73:in `run'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:41:in `invoke'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/exe/rspec:4:in `<top (required)>'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/rspec:23:in `load'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/rspec:23:in `<main>'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/ruby_executable_hooks:15:in `eval'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/ruby_executable_hooks:15:in `<main>'
+```
+
+At least this error message tells us what to do!
+
+```
+$ bin/rake db:migrate RAILS_ENV=test
+-bash: bin/rake: No such file or directory
+```
+
+...or not.  So it turns out, our engine doesn't have bin/rake either.
+
+Noticing a pattern?
+
+Essentially, our engine both is and isn't a mini-app.  It's structured like a
+run-of-the-mill Rails app, but lacks many of the standard features so it can be
+more lightweight.  That's why the dummy app exists, to fill in that stuff for
+testing purposes.
+
+Note, though, that we do have a `Rakefile` in the engine's top-level directory,
+and bundler installed rake.  So just remove the preface from that command.
+
+```
+$ rake db:migrate RAILS_ENV=test
+/Users/acaplan/.rvm/gems/ruby-2.2.1/gems/railties-4.2.3/lib/rails/tasks/statistics.rake:4: warning: already initialized constant STATS_DIRECTORIES
+/Users/acaplan/.rvm/gems/ruby-2.2.1/gems/railties-4.2.3/lib/rails/tasks/statistics.rake:4: warning: previous definition of STATS_DIRECTORIES was here
+== 20150809110816 CreateHotDrinksDrinkTypes: migrating ========================
+-- create_table(:hot_drinks_drink_types)
+   -> 0.0011s
+== 20150809110816 CreateHotDrinksDrinkTypes: migrated (0.0012s) ===============
+
+== 20150809112400 CreateHotDrinksMachines: migrating ==========================
+-- create_table(:hot_drinks_machines)
+   -> 0.0008s
+== 20150809112400 CreateHotDrinksMachines: migrated (0.0009s) =================
+
+== 20150809114923 CreateHotDrinksDrinks: migrating ============================
+-- create_table(:hot_drinks_drinks)
+   -> 0.0007s
+== 20150809114923 CreateHotDrinksDrinks: migrated (0.0008s) ===================
+```
+
+No failure this time!  Check out our schema now (`spec/test_app/db/schema.rb`):
+
+``` ruby
+# encoding: UTF-8
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# Note that this schema.rb definition is the authoritative source for your
+# database schema. If you need to create the application database on another
+# system, you should be using db:schema:load, not running all the migrations
+# from scratch. The latter is a flawed and unsustainable approach (the more migrations
+# you'll amass, the slower it'll run and the greater likelihood for issues).
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema.define(version: 20150809130712) do
+
+  create_table "hot_drinks_drink_types", force: :cascade do |t|
+    t.string   "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "hot_drinks_drinks", force: :cascade do |t|
+    t.integer  "machine_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "hot_drinks_drinks", ["machine_id"], name: "index_hot_drinks_drinks_on_machine_id"
+
+  create_table "hot_drinks_machines", force: :cascade do |t|
+    t.string   "name"
+    t.integer  "drink_type_id"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+  end
+
+  add_index "hot_drinks_machines", ["drink_type_id"], name: "index_hot_drinks_machines_on_drink_type_id"
+
+end
+
+```
+
+We're finally ready to get started with testing.
+
+```
+$ rspec
+**F****************FFFFFFFFF
+
+# ...
+
+Finished in 0.06708 seconds (files took 1.15 seconds to load)
+28 examples, 10 failures, 18 pending
+
+Failed examples:
+
+rspec ./spec/controllers/hot_drinks/machines_controller_spec.rb:57 # HotDrinks::MachinesController GET #new assigns a new machine as @machine
+rspec ./spec/requests/hot_drinks/hot_drinks_machines_spec.rb:5 # Machines GET /hot_drinks_machines works! (now write some real specs)
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:7 # HotDrinks::MachinesController routing routes to #index
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:11 # HotDrinks::MachinesController routing routes to #new
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:15 # HotDrinks::MachinesController routing routes to #show
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:19 # HotDrinks::MachinesController routing routes to #edit
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:23 # HotDrinks::MachinesController routing routes to #create
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:27 # HotDrinks::MachinesController routing routes to #update via PUT
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:31 # HotDrinks::MachinesController routing routes to #update via PATCH
+rspec ./spec/routing/hot_drinks/machines_routing_spec.rb:35 # HotDrinks::MachinesController routing routes to #destroy
+```
+
+OK, so we have a lot of failing specs.  I'm happy to live with that for now,
+since those are all auto-generated specs.  We'll overwrite them (or delete as
+necessary) as we go.
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
