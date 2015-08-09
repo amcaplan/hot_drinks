@@ -287,5 +287,46 @@ Finally, let's set up associations for `DrinkType`:
   has_many :drinks, through: :machines
 ```
 
+## Starting with Specs
+
+### Getting Our Environment Right
+
+Alright, let's jump in and start testing toward the behavior we wanted. So just
+run `rspec` on the command line...
+
+```
+$ rspec
+/Users/acaplan/Development/code/hot_drinks/spec/rails_helper.rb:3:in `require': cannot load such file -- /Users/acaplan/Development/code/hot_drinks/config/environment (LoadError)
+  from /Users/acaplan/Development/code/hot_drinks/spec/rails_helper.rb:3:in `<top (required)>'
+  from /Users/acaplan/Development/code/hot_drinks/spec/controllers/hot_drinks/machines_controller_spec.rb:1:in `require'
+  from /Users/acaplan/Development/code/hot_drinks/spec/controllers/hot_drinks/machines_controller_spec.rb:1:in `<top (required)>'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1327:in `load'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1327:in `block in load_spec_files'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1325:in `each'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/configuration.rb:1325:in `load_spec_files'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:102:in `setup'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:88:in `run'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:73:in `run'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/lib/rspec/core/runner.rb:41:in `invoke'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/rspec-core-3.3.2/exe/rspec:4:in `<top (required)>'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/rspec:23:in `load'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/rspec:23:in `<main>'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/ruby_executable_hooks:15:in `eval'
+  from /Users/acaplan/.rvm/gems/ruby-2.2.1/bin/ruby_executable_hooks:15:in `<main>'
+```
+
+Oh no!  What happened?  Well, it turns out that our engine isn't really a
+full-fledged Rails app after all.  It doesn't have the usual
+`config/environment.rb` file used to get things going.  All we have in the
+`config` directory is `routes.rb`.  What to do?
+
+My recommendation is this.  Remember that test app we created all the way at the
+beginning?  We'll use it as a test environment for our app.  So in
+`spec/rails_helper.rb`, change line 3 to read:
+
+``` ruby
+require File.expand_path('../../spec/test_app/config/environment', __FILE__)
+```
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
