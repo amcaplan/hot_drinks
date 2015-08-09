@@ -97,6 +97,44 @@ $ rails generate rspec:install
 
 to get our `spec_helper.rb` file ready.
 
+### Updating Generators
+
+Next, we'll tell our engine that we're using RSpec and FactoryGirl, so the Rails
+generators will generate tests appropriately.
+
+Look at the file `lib/hot_drinks/engine.rb`:
+
+``` ruby
+module HotDrinks
+  class Engine < ::Rails::Engine
+    isolate_namespace HotDrinks
+  end
+end
+
+```
+
+Let's understand this before we modify it.  The `isolate_namespace` line exists
+because we told Rails to make this a mountable plugin.  So everything we create
+will exist inside the `HotDrinks` namespace.  This line is super important!
+
+We're going to add a few lines to the file, so it should now look like:
+
+``` ruby
+module HotDrinks
+  class Engine < ::Rails::Engine
+    isolate_namespace HotDrinks
+
+    config.generators do |g|
+      g.test_framework :rspec
+      g.fixture_replacement :factory_girl, :dir => 'spec/factories'
+    end
+  end
+end
+
+```
+
+And we're ready to get to work.
+
 ## 
 
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
