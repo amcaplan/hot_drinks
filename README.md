@@ -328,5 +328,90 @@ beginning?  We'll use it as a test environment for our app.  So in
 require File.expand_path('../../spec/test_app/config/environment', __FILE__)
 ```
 
+### A Side Note About the Test App
+
+Since we're already talking about it, let's dive into the test app just a bit.
+
+On its surface, it looks like a regular Rails app with no models, views, or
+controllers.  But there are two important differences.
+
+First, look at `spec/test_app/Gemfile`.  Oh, just kidding, there isn't one.  The
+dummy app isn't 100% complete; it's relying on the top-level `Gemfile`.
+
+Second, look at `spec/test_app/config/routes.rb`.  It's there this time, scout's
+honor!
+
+``` ruby
+Rails.application.routes.draw do
+
+  mount HotDrinks::Engine => "/hot_drinks"
+end
+
+```
+
+That `mount` line is what you'll be adding to any app that integrates your
+engine.  In fact, if you run `rake routes` from the `test_app` directory, this
+is what it looks like:
+
+```
+$ rake routes
+    Prefix Verb URI Pattern Controller#Action
+hot_drinks      /hot_drinks HotDrinks::Engine
+
+Routes for HotDrinks::Engine:
+    machines GET    /machines(.:format)          hot_drinks/machines#index
+             POST   /machines(.:format)          hot_drinks/machines#create
+ new_machine GET    /machines/new(.:format)      hot_drinks/machines#new
+edit_machine GET    /machines/:id/edit(.:format) hot_drinks/machines#edit
+     machine GET    /machines/:id(.:format)      hot_drinks/machines#show
+             PATCH  /machines/:id(.:format)      hot_drinks/machines#update
+             PUT    /machines/:id(.:format)      hot_drinks/machines#update
+             DELETE /machines/:id(.:format)      hot_drinks/machines#destroy
+```
+
+Familiar but different.  Essentially, all the routes we've created are
+namespaced to whatever we specify in `routes.rb`.  So if we wanted to move our
+engine to a different route, we could change that line to
+
+``` ruby
+mount HotDrinks::Engine => "/sparkly_dinosaurs"
+```
+
+and we'd see
+
+```
+$ rake routes
+    Prefix Verb URI Pattern        Controller#Action
+hot_drinks      /sparkly_dinosaurs HotDrinks::Engine
+
+Routes for HotDrinks::Engine:
+    machines GET    /machines(.:format)          hot_drinks/machines#index
+             POST   /machines(.:format)          hot_drinks/machines#create
+ new_machine GET    /machines/new(.:format)      hot_drinks/machines#new
+edit_machine GET    /machines/:id/edit(.:format) hot_drinks/machines#edit
+     machine GET    /machines/:id(.:format)      hot_drinks/machines#show
+             PATCH  /machines/:id(.:format)      hot_drinks/machines#update
+             PUT    /machines/:id(.:format)      hot_drinks/machines#update
+             DELETE /machines/:id(.:format)      hot_drinks/machines#destroy
+```
+
+Not very obvious, but you can see from up top that the `/sparkly_dinosaurs`
+route is now our entry point into our engine.  It's up to use to realize that
+
+```
+    machines GET    /machines(.:format)          hot_drinks/machines#index
+```
+means, "When you perform a `GET` request to the engine's route
+(`/sparkly_dinosaurs`) followed by `/machines`, you get to the controller action
+`hot_drinks/machines#index`."
+
+Anyway, make sure we're back to
+
+``` ruby
+mount HotDrinks::Engine => "/hot_drinks"
+```
+
+before we continue.
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
