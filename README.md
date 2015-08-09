@@ -256,5 +256,36 @@ $ rails generate model drink machine:references
       create        spec/factories/hot_drinks_drinks.rb
 ```
 
+Now let's make sure our models are wired up properly in the code.
+
+``` ruby
+module HotDrinks
+  class Drink < ActiveRecord::Base
+    belongs_to :machine
+  end
+end
+
+```
+
+`Drink` seems to be connected to `Machine`, as we'd expect.  To make sure it has
+a `DrinkType` as well, we'll just add
+
+``` ruby
+has_one :drink_type, through: :machine
+```
+
+Now to to wire up the `Machine` itself!  Just need to add
+
+``` ruby
+has_many :drinks
+```
+
+Finally, let's set up associations for `DrinkType`:
+
+``` ruby
+  has_many :machines
+  has_many :drinks, through: :machines
+```
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
