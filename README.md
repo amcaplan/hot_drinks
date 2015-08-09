@@ -135,7 +135,67 @@ end
 
 And we're ready to get to work.
 
-## 
+## Adding Our Resources
+
+Let's get down to our business rules now.  Essentially, we want to have coffee
+and tea machines available.  They both basically work the same, just that one
+produces coffee and the other produces tea.  We'll want to have a `Machine`
+model representing our brewing machines, a `Drink` model representing the drinks
+we generate, and a `DrinkType` model that will associate each drink and machine
+as coffee or tea.  (We may want to add more drinks later - perhaps some apple
+cider in the autumn?)
+
+Our UX department has decided that we will have a page for each machine we
+create, and that page will display available cups of coffee or tea created by
+that machine.  Users can drink what's there, deleting the record from our
+database.
+
+### Generating a Model
+
+Let's begin with our `DrinkType`s - they're straightforward enough.
+
+```
+$ rails generate model drink_type name:string
+      invoke  active_record
+      create    db/migrate/20150809110816_create_hot_drinks_drink_types.rb
+      create    app/models/hot_drinks/drink_type.rb
+      invoke    rspec
+      create      spec/models/hot_drinks/drink_type_spec.rb
+      invoke      factory_girl
+      create        spec/factories/hot_drinks_drink_types.rb
+```
+
+Excellent, our engine used RSpec and FactoryGirl to test our model.  Note that
+both the model and the spec files are namespaced.  This is reflected in the code
+itself as well:
+
+``` ruby
+module HotDrinks
+  class DrinkType < ActiveRecord::Base
+  end
+end
+
+```
+
+If you're extra sharp, you may also have noticed that the migration file looks a
+little different than you might expect:
+
+``` ruby
+class CreateHotDrinksDrinkTypes < ActiveRecord::Migration
+  def change
+    create_table :hot_drinks_drink_types do |t|
+      t.string :name
+
+      t.timestamps null: false
+    end
+  end
+end
+
+```
+
+Even the migration and table name are namespaced.  This way, they're less likely
+to conflict with your application, and you could theoretically have a separate
+`DrinkType` on the global level.
 
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
