@@ -239,6 +239,22 @@ there was a route added to our `config/routes.rb`.  More on that later.
 You'll note that I'm not really doing much with the tests.  We'll get there
 soon.
 
+### One More Model...
+
+Now it's time for our hot drinks!  Since they don't get views of their own, we
+just need a model, plus a controller with just a `DELETE` action.  Let's
+generate our hot drinks that way:
+
+```
+$ rails generate model drink machine:references
+      invoke  active_record
+      create    db/migrate/20150809114923_create_hot_drinks_drinks.rb
+      create    app/models/hot_drinks/drink.rb
+      invoke    rspec
+      create      spec/models/hot_drinks/drink_spec.rb
+      invoke      factory_girl
+      create        spec/factories/hot_drinks_drinks.rb
+```
 
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
