@@ -605,5 +605,326 @@ Loading test environment (Rails 4.2.3)
 
 Now we can get started on some test-driven development.  Let's do it!
 
+## TDD to the Top!
+
+### What We Won't Test
+
+You'll notice that earlier, we generated scaffolds and then didn't do much with
+the test files.  This is because it's not really worth our while to test that
+Rails works.  We can pretty much trust Rails to do what it does best.  Instead,
+our tests will focus on the logic specific to our application.
+
+### Brewing Functionality
+
+Let's start by asserting that a machine which receives the `#brew` command will
+generate a new, piping-hot cup of whatever it makes.
+
+So let's add our first test to `spec/models/machine_spec.rb`:
+
+``` ruby
+require 'rails_helper'
+
+module HotDrinks
+  RSpec.describe Machine, type: :model do
+    subject {
+      FactoryGirl.create(:hot_drinks_machine, drink_type: drink_type)
+    }
+
+    let(:drink_type) {
+      FactoryGirl.create(:hot_drinks_drink_type, name: drink_name)
+    }
+
+    context 'a coffee machine' do
+      let(:drink_name) { 'coffee' }
+
+      before do
+        expect(subject.drinks).to be_empty
+      end
+
+      it 'brews a cup of coffee' do
+        subject.brew
+        brewed_drink = subject.drinks.first
+        expect(brewed_drink.drink_type.name).to eq(drink_name)
+      end
+    end
+  end
+end
+
+```
+
+and run the test!
+
+```
+$ rspec spec/models/hot_drinks/machine_spec.rb
+F
+
+Failures:
+
+  1) HotDrinks::Machine a coffee machine brews a cup of coffee
+     Failure/Error: subject.brew
+     NoMethodError:
+       undefined method `brew' for #<HotDrinks::Machine:0x007f822ec5a578>
+     # /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activemodel-4.2.3/lib/active_model/attribute_methods.rb:433:in `method_missing'
+     # ./spec/models/hot_drinks/machine_spec.rb:21:in `block (3 levels) in <module:HotDrinks>'
+
+Finished in 0.03081 seconds (files took 0.93857 seconds to load)
+1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/models/hot_drinks/machine_spec.rb:20 # HotDrinks::Machine a coffee machine brews a cup of coffee
+
+```
+
+Now we'll add a `brew` method to our `Machine` model.
+
+``` ruby
+module HotDrinks
+  class Machine < ActiveRecord::Base
+    belongs_to :drink_type
+    has_many :drinks
+
+    def brew
+    end
+  end
+end
+
+```
+
+and we get a more interesting failure:
+
+```
+$ rspec spec/models/hot_drinks/machine_spec.rb 
+F
+
+Failures:
+
+  1) HotDrinks::Machine a coffee machine brews a cup of coffee
+     Failure/Error: expect(brewed_drink.drink_type.name).to eq('coffee')
+     NoMethodError:
+       undefined method `drink_type' for nil:NilClass
+     # ./spec/models/hot_drinks/machine_spec.rb:23:in `block (3 levels) in <module:HotDrinks>'
+
+Finished in 0.03424 seconds (files took 0.98238 seconds to load)
+1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/models/hot_drinks/machine_spec.rb:20 # HotDrinks::Machine a coffee machine brews a cup of coffee
+```
+
+We're not actually brewing anything, so let's fix that.
+
+``` ruby
+def brew
+  self.drinks << Drink.new
+end
+```
+
+and the test passes.  It works just as well for tea:
+
+``` ruby
+context 'a tea machine' do
+  let(:drink_name) { 'tea' }
+
+  before do
+    expect(subject.drinks).to be_empty
+  end
+
+  it 'brews a cup of tea' do
+    subject.brew
+    brewed_drink = subject.drinks.first
+    expect(brewed_drink.drink_type.name).to eq(drink_name)
+  end
+end
+```
+
+Just to be sure, let's add a test to make sure we can access the drinks later.
+
+``` ruby
+context 'a coffee machine' do
+  let(:drink_name) { 'coffee' }
+
+  before do
+    expect(subject.drinks).to be_empty
+  end
+
+  it 'brews a cup of coffee' do
+    subject.brew
+    expect(brewed_drink.name).to eq(drink_name)
+  end
+
+  it 'persists the drink' do
+    expect { subject.brew }.to change{ Drink.count }.by(1)
+  end
+end
+```
+
+And it passes.
+
+The truth is, though, I don't like that we need to spell out
+`brewed_drink.drink_type.name` - the brewed drink has a type, and it should know
+itself what that type is.  So let's change the tests a bit, and pull out a
+method while we're at it.
+
+``` ruby
+def brewed_drink
+  subject.drinks.first
+end
+
+context 'a coffee machine' do
+  let(:drink_name) { 'coffee' }
+
+  before do
+    expect(subject.drinks).to be_empty
+  end
+
+  it 'brews a cup of coffee' do
+    subject.brew
+    expect(brewed_drink.name).to eq(drink_name)
+  end
+
+  it 'persists the drinks' do
+    expect { subject.brew }.to change{ Drink.count }.by(1)
+  end
+end
+
+context 'a tea machine' do
+  let(:drink_name) { 'tea' }
+
+  before do
+    expect(subject.drinks).to be_empty
+  end
+
+  it 'brews a cup of tea' do
+    subject.brew
+    expect(brewed_drink.name).to eq(drink_name)
+  end
+end
+```
+
+Running the tests, they now fail:
+
+```
+undefined method `name' for #<HotDrinks::Drink:0x007fe1328647a8>
+```
+
+Let's define `#name` in the `Drink` model.  But not before we write a test!  So
+we'll open up `spec/models/hot_drinks/drink_spec.rb` and change the contents to
+the following:
+
+``` ruby
+require 'rails_helper'
+
+module HotDrinks
+  RSpec.describe Drink, type: :model do
+    subject {
+      FactoryGirl.create(:hot_drinks_drink, machine: machine)
+    }
+
+    let(:machine) {
+      FactoryGirl.create(:hot_drinks_machine, drink_type: drink_type)
+    }
+
+    let(:drink_type) {
+      FactoryGirl.create(:hot_drinks_drink_type, name: drink_name)
+    }
+
+    let(:drink_name) { 'coffee' }
+
+    describe 'getting the name of a drink' do
+      it 'pulls the name from the drink type' do
+        expect(subject.name).to eq(drink_name)
+      end
+    end
+  end
+end
+
+```
+
+And now we run the specs:
+
+```
+$ rspec spec/models/hot_drinks/drink_spec.rb
+F
+
+Failures:
+
+  1) HotDrinks::Drink getting the name of a drink pulls the name from the drink type
+     Failure/Error: expect(subject.name).to eq(drink_name)
+     NoMethodError:
+       undefined method `name' for #<HotDrinks::Drink:0x007faf64fca880>
+     # /Users/acaplan/.rvm/gems/ruby-2.2.1/gems/activemodel-4.2.3/lib/active_model/attribute_methods.rb:433:in `method_missing'
+     # ./spec/models/hot_drinks/drink_spec.rb:21:in `block (3 levels) in <module:HotDrinks>'
+
+Finished in 0.02473 seconds (files took 0.9402 seconds to load)
+1 example, 1 failure
+
+Failed examples:
+
+rspec ./spec/models/hot_drinks/drink_spec.rb:20 # HotDrinks::Drink getting the name of a drink pulls the name from the drink type
+
+```
+
+We can fix that.
+
+``` ruby
+module HotDrinks
+  class Drink < ActiveRecord::Base
+    belongs_to :machine
+    has_one :drink_type, through: :machine
+
+    def name
+    end
+  end
+end
+
+```
+
+And now a more interesting error:
+
+
+``` ruby
+Failures:
+
+  1) HotDrinks::Drink getting the name of a drink pulls the name from the drink type
+     Failure/Error: expect(subject.name).to eq(drink_name)
+
+       expected: "coffee"
+            got: nil
+
+       (compared using ==)
+     # ./spec/models/hot_drinks/drink_spec.rb:21:in `block (3 levels) in <module:HotDrinks>'
+```
+
+So let's fill in the `#name` method.
+
+``` ruby
+def name
+  drink_type.name
+end
+```
+
+which makes our test pass.  If we go back to our machine specs now, they pass as
+well.
+
+Do we need any specs for `DrinkType`?  I don't think so, it's just doing all
+standard, simple Rails stuff, and we can be pretty sure Rails works.  So let's
+clear the `pending` line from `spec/models/hot_drinks/drink_type_spec.rb`.  I
+don't recommend deleting the file, in case we decide to add more interesting
+behavior later.
+
+We can now run `rspec spec/models` and see the following output:
+
+```
+rspec spec/models
+...
+
+Finished in 0.06789 seconds (files took 0.91903 seconds to load)
+4 examples, 0 failures
+```
+
+The model specs are good to go!  At least for now.
+
 [Rails plugin guide]: http://guides.rubyonrails.org/plugins.html
 [YK on gem gemfiles]: http://yehudakatz.com/2010/12/16/clarifying-the-roles-of-the-gemspec-and-gemfile/
